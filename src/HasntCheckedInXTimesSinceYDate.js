@@ -5,12 +5,12 @@ import moment from 'moment';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-export default class NegativeRatings extends Component {
+export default class HasntCheckedInXTimesSinceYDate extends Component {
   constructor(props) {
     super(props);
     this.state = {
-     startDate: moment(),
-     numberOfOne: 1,
+     startDate: moment().add(1, 'd'),
+     numberOfCheckins: 1,
    };
  }
 
@@ -20,30 +20,28 @@ export default class NegativeRatings extends Component {
     });
   }
 
-  handleNumberChange = (event) => {
+  handleNumberOfCheckinsChange = (event) => {
     this.setState({
-      numberOfOne: event.target.value,
+      numberOfCheckins: event.target.value,
     })
   }
 
   checkDate = (checkInDate) => {
-    if (checkInDate.isSameOrAfter(this.state.startDate, 'day')) {
-      return true;
-    }
+    return checkInDate.isSameOrAfter(this.state.startDate, 'day');
   }
 
   render() {
     const filteredTable = this.props.df
-      .where(row => row.rating == 1 && this.checkDate(row.check_in_date));
+      .where(row => this.checkDate(row.check_in_date));
 
-    const countRating = filteredTable
+    const countCheckIns = filteredTable
       .groupBy(row => row.email)
       .select(group => ({
         email: group.first().email,
-        number_of_one_stars: group.deflate(row => row.rating).count()
+        number_of_check_ins: group.deflate(row => row.check_in_date).count(),
       }))
       .inflate()
-      .where(row => row.number_of_one_stars >= this.state.numberOfOne);
+      .where(row => row.number_of_check_ins <= this.state.numberOfCheckins);
 
     return (
       <div>
@@ -51,8 +49,8 @@ export default class NegativeRatings extends Component {
           selected={this.state.startDate}
           onChange={this.handleDateChange}
         />
-        <input type='number' value={this.state.numberOfOne} onChange={this.handleNumberChange} />
-        <div dangerouslySetInnerHTML={{ __html: countRating.toHTML() }} />
+        <input type='number' value={this.state.numberOfCheckins} onChange={this.handleNumberOfCheckinsChange} />
+        <div dangerouslySetInnerHTML={{ __html: countCheckIns.toHTML() }} />
       </div>
     );
   }

@@ -5,54 +5,56 @@ import moment from 'moment';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-export default class NegativeRatings extends Component {
+export default class NumberOfCheckinsBetweenTwoDates extends Component {
   constructor(props) {
     super(props);
     this.state = {
      startDate: moment(),
-     numberOfOne: 1,
+     endDate: moment(),
    };
  }
 
-  handleDateChange = (date) => {
+  handleStartDateChange = (date) => {
     this.setState({
       startDate: date,
     });
   }
 
-  handleNumberChange = (event) => {
+  handleEndDateChange = (date) => {
     this.setState({
-      numberOfOne: event.target.value,
-    })
+      endDate: date,
+    });
   }
 
   checkDate = (checkInDate) => {
-    if (checkInDate.isSameOrAfter(this.state.startDate, 'day')) {
+    if (checkInDate.isSameOrAfter(this.state.startDate, 'day') && checkInDate.isSameOrBefore(this.state.endDate, 'day')) {
       return true;
     }
   }
 
   render() {
     const filteredTable = this.props.df
-      .where(row => row.rating == 1 && this.checkDate(row.check_in_date));
+      .where(row => this.checkDate(row.check_in_date));
 
-    const countRating = filteredTable
+    const countCheckIns = filteredTable
       .groupBy(row => row.email)
       .select(group => ({
         email: group.first().email,
-        number_of_one_stars: group.deflate(row => row.rating).count()
+        number_of_check_ins: group.deflate(row => row.check_in_date).count(),
       }))
-      .inflate()
-      .where(row => row.number_of_one_stars >= this.state.numberOfOne);
+      .inflate();
 
     return (
       <div>
         <DatePicker
           selected={this.state.startDate}
-          onChange={this.handleDateChange}
+          onChange={this.handleStartDateChange}
         />
-        <input type='number' value={this.state.numberOfOne} onChange={this.handleNumberChange} />
-        <div dangerouslySetInnerHTML={{ __html: countRating.toHTML() }} />
+        <DatePicker
+          selected={this.state.endDate}
+          onChange={this.handleEndDateChange}
+        />
+        <div dangerouslySetInnerHTML={{ __html: countCheckIns.toHTML() }} />
       </div>
     );
   }

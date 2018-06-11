@@ -4,8 +4,8 @@ import CsvParse from '@vtex/react-csv-parse';
 import { readFile, Series, DataFrame } from 'data-forge';
 import HighLevelDashBoardData from './HighLevelDashBoardData';
 import Demographics from './Demographics';
-import NegativeRatings from './NegativeRatings';
 import ActiveUserTable from './ActiveUserTable';
+import CheckInStats from './CheckInStats';
 
 class App extends Component {
   constructor(props) {
@@ -37,24 +37,6 @@ class App extends Component {
       var checkinDf = new DataFrame(this.state.checkInData);
       const checkInTable = checkinDf.toHTML();
 
-      var joinedDf = questionaireDf.join(
-        checkinDf,
-        left => left.email,
-        right => right.email,
-        (left, right) => {
-          return {
-            email: left.email,
-            first_name: left.first_name,
-            last_name: left.last_name,
-            check_in_date: right.date,
-            weight_on_day: right.weight,
-            goal_weight: left.goal_weight,
-            city_state: left.city_state,
-          }
-        }
-      )
-      const joinTable = joinedDf.toHTML();
-
       return (
         <div>
           <div style={{
@@ -70,11 +52,9 @@ class App extends Component {
             />
           </div>
           <h1> Check-In Stats </h1>
-          <NegativeRatings
-            checkinDf={checkinDf}
-          />
-          <ActiveUserTable
+          <CheckInStats
             questionaireDf={questionaireDf}
+            checkinDf={checkinDf}
           />
         </div>
       )
@@ -113,13 +93,15 @@ class App extends Component {
         'token',
         'date',
         'fast_or_eat',
+        'is_weight',
         'weight',
-        'calories',
-        'is_workout_calories',
+        'is_calories',
+        'calories_eaten',
+        'is_calories_burnt',
         'is_body_fat',
         'is_measurments',
         'is_progress_photos',
-        'none_chosen',
+        'is_none_chosen',
         'bf_percent',
         'burned_calories',
         'neck',
@@ -128,7 +110,7 @@ class App extends Component {
         'hips',
         'upper_thigh',
         'mid_calf',
-        'bicept',
+        'bicep',
         'forearm',
         'front_facing',
         'side_facing',
@@ -170,5 +152,9 @@ class App extends Component {
     }
   }
 }
+
+// <ActiveUserTable
+//   questionaireDf={questionaireDf}
+// />
 
 export default App;
